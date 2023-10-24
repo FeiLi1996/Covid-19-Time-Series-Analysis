@@ -1,0 +1,38 @@
+---
+title: "Covid 19 Time Series Data"
+output: html_document
+date: "2023-10-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+#Load libraries
+```{r}
+library(data.table)
+library(ggplot2)
+library(tidyverse)
+
+```
+
+
+
+#Read in data
+```{r}
+#Free dataset from link below
+#https://www.kaggle.com/datasets/niketchauhan/covid-19-time-series-data
+dt <- read.table("time-series-19-covid-combined.csv",header=TRUE,sep=",",stringsAsFactors=FALSE)
+
+head(dt)
+```
+
+
+```{r}
+
+summary(dt)
+glimpse(dt)
+```
+
+
