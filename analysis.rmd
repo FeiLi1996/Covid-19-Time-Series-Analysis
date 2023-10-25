@@ -1,11 +1,16 @@
 ---
 title: "Covid 19 Time Series Data"
-output: html_document
+output: 
+  html_document:
+    code_folding: hide
+   
+
+
 date: "2023-10-23"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 
@@ -14,6 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(data.table)
 library(ggplot2)
 library(tidyverse)
+
 
 ```
 
@@ -24,15 +30,33 @@ library(tidyverse)
 #Free dataset from link below
 #https://www.kaggle.com/datasets/niketchauhan/covid-19-time-series-data
 dt <- read.table("time-series-19-covid-combined.csv",header=TRUE,sep=",",stringsAsFactors=FALSE)
+setDT(dt)
 
 head(dt)
 ```
+
+```{r}
+
+cat('There are ',dim(dt)[1] , "columns and ",dim(dt)[2], "rows.")
+```
+
 
 
 ```{r}
 
 summary(dt)
-glimpse(dt)
+# glimpse(dt)
 ```
 
+```{r}
 
+character_columns <- c('Country.Region' , "Province.State")
+number_columns <-c( 'Lat','Long','Confirmed','Recovered','Deaths')
+
+
+
+dt[,Date:=ymd(Date)]
+dt
+
+
+```
