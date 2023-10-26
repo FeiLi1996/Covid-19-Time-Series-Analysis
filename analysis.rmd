@@ -16,10 +16,10 @@ knitr::opts_chunk$set(echo = FALSE)
 
 #Load libraries
 ```{r}
+
 library(data.table)
 library(ggplot2)
 library(tidyverse)
-
 
 ```
 
@@ -34,6 +34,62 @@ setDT(dt)
 
 head(dt)
 ```
+#Utility Functions
+```{r}
+
+dt$Date <-NULL
+dt
+
+col_nameeeee <- 'Deaths'
+
+print(class(dt[[col_nameeeee]]))
+
+
+col_names <- c('Country.Region','Confirmed')
+
+
+for (col_name in colnames(dt) ){
+  # if(is.character(dt[,c(col_name) , with=TRUE])){
+  #   print(col_name)
+  # }
+  print(dt[,c(col_name) , with=FALSE])
+}
+
+
+for (col_name in colnames(dt)){
+  if (is.character(dt[,c(col_name) , with=FALSE]) ==TRUE){
+   print(col_name)
+    
+  }
+}
+
+
+factorize_str <- function (dt){
+  #Making a copy to not affect the original datatable
+  dt_copy <- copy(dt)
+
+  for (col_name in colnames(dt_copy)){
+  
+    print(col_name)
+    print(is.character(dt_copy[[col_name]]))
+    print(class(dt_copy[[col_name]]))
+    if (is.character(dt_copy[[col_name]])){
+        set(dt_copy, j = col_name, value = as.factor(dt_copy[[col_name]]))
+        print('hello')
+    }
+  }
+
+  #Another way of doing it
+  # changeCols <- names(dt_copy)[sapply(dt_copy, is.character)]
+  # dt_copy[,(changeCols):= lapply(.SD, as.factor), .SDcols = changeCols]
+    
+  dt_copy
+}
+
+
+summary(factorize_str(dt))
+```
+
 
 ```{r}
 
@@ -44,8 +100,9 @@ cat('There are ',dim(dt)[1] , "columns and ",dim(dt)[2], "rows.")
 
 ```{r}
 
+
 summary(dt)
-# glimpse(dt)
+glimpse(dt)
 ```
 
 ```{r}
@@ -57,6 +114,12 @@ number_columns <-c( 'Lat','Long','Confirmed','Recovered','Deaths')
 
 dt[,Date:=ymd(Date)]
 dt
+
+
+nrow(dt)
+
+#checking for percentage of nulls for each column
+round(colSums(is.na(dt)) * 100/nrow(dt) ,1)
 
 
 ```
