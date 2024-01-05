@@ -20,6 +20,7 @@ knitr::opts_chunk$set(echo = FALSE)
 library(data.table)
 library(ggplot2)
 library(tidyverse)
+library(GGally) 
 
 ```
 
@@ -32,36 +33,17 @@ library(tidyverse)
 dt <- read.table("time-series-19-covid-combined.csv",header=TRUE,sep=",",stringsAsFactors=FALSE)
 setDT(dt)
 
-head(dt)
+dt
 ```
+
+```{r}
+glimpse(dt)
+```
+
+
 #Utility Functions
 ```{r}
 
-dt$Date <-NULL
-dt
-
-col_nameeeee <- 'Deaths'
-
-print(class(dt[[col_nameeeee]]))
-
-
-col_names <- c('Country.Region','Confirmed')
-
-
-for (col_name in colnames(dt) ){
-  # if(is.character(dt[,c(col_name) , with=TRUE])){
-  #   print(col_name)
-  # }
-  print(dt[,c(col_name) , with=FALSE])
-}
-
-
-for (col_name in colnames(dt)){
-  if (is.character(dt[,c(col_name) , with=FALSE]) ==TRUE){
-   print(col_name)
-    
-  }
-}
 
 
 factorize_str <- function (dt){
@@ -70,9 +52,9 @@ factorize_str <- function (dt){
 
   for (col_name in colnames(dt_copy)){
   
-    print(col_name)
-    print(is.character(dt_copy[[col_name]]))
-    print(class(dt_copy[[col_name]]))
+    # print(col_name)
+    # print(is.character(dt_copy[[col_name]]))
+    # print(class(dt_copy[[col_name]]))
     if (is.character(dt_copy[[col_name]])){
         set(dt_copy, j = col_name, value = as.factor(dt_copy[[col_name]]))
         print('hello')
@@ -88,12 +70,15 @@ factorize_str <- function (dt){
 
 
 summary(factorize_str(dt))
+# Lots of empty values for column province.state .... 50,000/72,000 is approx 70%
 ```
+
 
 
 ```{r}
 
 cat('There are ',dim(dt)[1] , "columns and ",dim(dt)[2], "rows.")
+
 ```
 
 
@@ -121,5 +106,95 @@ nrow(dt)
 #checking for percentage of nulls for each column
 round(colSums(is.na(dt)) * 100/nrow(dt) ,1)
 
+colSums(dt=="")
+
+
+unique(dt[Province.State !="" , .(Country.Region,Province.State) ])
+
+dt[, .N , by=c("Country.Region" , "Province.State")]
+
+dt[Country.Region %like% 'Cote',]
+
+
+
+
 
 ```
+```{r}
+
+
+china_beijing_dt <- dt[Country.Region =='China' & Province.State=='Beijing']
+
+
+summary(factorize_str(china_beijing_dt))
+
+
+
+china_beijing_dt[ , year_mon:= substring(format(Date, format = "%Y%m%d"),0,6)]
+china_beijing_dt
+
+
+china_beijing_agg_dt <- china_beijing_dt [, lapply(.SD, sum), .SDcols=c('Confirmed','Recovered','Deaths') ,by='year_mon']
+china_beijing_agg_dt
+
+
+china_beijing_agg_dt[ ,year_mon:=ym(year_mon)]
+china_beijing_agg_dt
+
+
+```
+
+
+```{r}
+
+
+num.cols <- sapply(china_beijing_agg_dt, is.numeric)
+ggpairs( china_beijing_agg_dt[,..num.cols] )
+
+```
+
+```{r}
+
+#
+
+ggplot(data = china_beijing_agg_dt, mapping = aes(x = year_mon , y=Confirmed )) +
+  geom_point() +
+  geom_smooth(se = FALSE) +
+  ggtitle("China Beijing Year 2020 Monthly Confirmed Cases") +
+  labs(y = "Confirmed Cases", x = "month") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+  
+  
+
+```
+
+
+```{r}
+
+colors <- c("Confirmed" = "blue", "Recovered" = "green")
+ggplot() + geom_line(aes(x=china_beijing_agg_dt$year_mon,y=china_beijing_agg_dt$Confirmed,color='Confirmed')) + 
+           geom_line(aes(x=china_beijing_agg_dt$year_mon,y=china_beijing_agg_dt$Recovered,color='Recovered')) + 
+            labs(x = "Month",
+                 y = "Events",
+                 color = "Legend") + 
+           ggtitle("China Beijing Year 2020 Monthly Confirmed/Recovered Events") +
+           theme(plot.title = element_text(hjust = 0.5)) +
+           scale_color_manual(values = colors)
+```
+
+```{r}
+
+colors <- c("Confirmed" = "blue", "Recovered" = "green" , "Deaths"="red" )
+ggplot() + geom_line(aes(x=china_beijing_agg_dt$year_mon,y=china_beijing_agg_dt$Confirmed,color='Confirmed')) + 
+           geom_line(aes(x=china_beijing_agg_dt$year_mon,y=china_beijing_agg_dt$Recovered,color='Recovered')) + 
+           geom_line(aes(x=china_beijing_agg_dt$year_mon,y=china_beijing_agg_dt$Deaths,color='Deaths')) +
+            labs(x = "Month",
+                 y = "Events",
+                 color = "Legend") + 
+           ggtitle("China Beijing Year 2020 Monthly Trio Events") +
+           theme(plot.title = element_text(hjust = 0.5)) +
+           scale_color_manual(values = colors)
+
+```
+
